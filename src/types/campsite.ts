@@ -1,5 +1,6 @@
 export type ItemCategory = 'vehicle' | 'shelter' | 'furniture' | 'utility';
 export type ItemShape = 'rect';
+export type LCutCorner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
 export interface ItemDefinition {
   id: string;
