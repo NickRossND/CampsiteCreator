@@ -49,8 +49,6 @@ export function CampsiteItem({ item, pxPerFoot, isSelected }: CampsiteItemProps)
         width={pw}
         height={pd}
         rotation={item.rotation}
-        offsetX={pw / 2}
-        offsetY={pd / 2}
         draggable
         onClick={() => selectItem(item.instanceId)}
         onTap={() => selectItem(item.instanceId)}

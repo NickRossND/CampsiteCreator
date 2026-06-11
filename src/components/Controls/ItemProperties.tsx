@@ -1,10 +1,75 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { useCampsiteStore } from '../../store/campsiteStore';
 import { definitionMap } from '../../data/itemDefinitions';
+
+interface NumericFieldProps {
+  label: string;
+  value: number;
+  onCommit: (v: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+}
+
+function NumericField({ label, value, onCommit, min, max, step }: NumericFieldProps) {
+  const [draft, setDraft] = useState(String(value));
+  const focused = useRef(false);
+
+  // Sync display from store whenever value changes externally (e.g. drag)
+  useEffect(() => {
+    if (!focused.current) {
+      setDraft(String(value));
+    }
+  }, [value]);
+
+  const commit = useCallback(() => {
+    const n = parseFloat(draft);
+    if (!isNaN(n) && (min === undefined || n >= min) && (max === undefined || n <= max)) {
+      onCommit(n);
+    } else {
+      setDraft(String(value)); // revert invalid input
+    }
+  }, [draft, value, min, max, onCommit]);
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs text-slate-500 w-16 flex-shrink-0">{label}</span>
+      <input
+        type="number"
+        value={draft}
+        min={min}
+        max={max}
+        step={step}
+        onChange={e => setDraft(e.target.value)}
+        onFocus={() => { focused.current = true; }}
+        onBlur={() => {
+          focused.current = false;
+          commit();
+        }}
+        onKeyDown={e => {
+          if (e.key === 'Enter') {
+            commit();
+            (e.target as HTMLInputElement).blur();
+          }
+          if (e.key === 'Escape') {
+            setDraft(String(value));
+            (e.target as HTMLInputElement).blur();
+          }
+        }}
+        className="flex-1 px-2 py-1 text-sm border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-400"
+      />
+    </div>
+  );
+}
 
 export function ItemProperties() {
   const { items, selectedId, updateItem, deleteItem, selectItem } = useCampsiteStore();
   const item = items.find(i => i.instanceId === selectedId);
+  const [labelDraft, setLabelDraft] = useState('');
+
+  useEffect(() => {
+    setLabelDraft(item?.label ?? '');
+  }, [item?.instanceId, item?.label]);
 
   const handleDelete = useCallback(() => {
     if (selectedId) deleteItem(selectedId);
@@ -32,25 +97,6 @@ export function ItemProperties() {
 
   const def = definitionMap.get(item.definitionId);
 
-  const field = (
-    label: string,
-    value: number | string,
-    onChange: (v: string) => void,
-    type: 'number' | 'text' = 'number',
-    extra?: React.InputHTMLAttributes<HTMLInputElement>
-  ) => (
-    <div className="flex items-center gap-2">
-      <span className="text-xs text-slate-500 w-16 flex-shrink-0">{label}</span>
-      <input
-        type={type}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        className="flex-1 px-2 py-1 text-sm border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-400"
-        {...extra}
-      />
-    </div>
-  );
-
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
@@ -61,13 +107,32 @@ export function ItemProperties() {
         <span className="text-sm font-semibold text-slate-700 truncate">{def?.name}</span>
       </div>
 
-      {field('Label', item.label ?? '', v => updateItem(item.instanceId, { label: v || undefined }), 'text', { placeholder: def?.name })}
-      {field('Width (ft)', Number(item.width.toFixed(2)), v => { const n = parseFloat(v); if (n > 0) updateItem(item.instanceId, { width: n }); }, 'number', { min: 0.5, step: 0.5 })}
-      {field('Depth (ft)', Number(item.depth.toFixed(2)), v => { const n = parseFloat(v); if (n > 0) updateItem(item.instanceId, { depth: n }); }, 'number', { min: 0.5, step: 0.5 })}
-      {field('Height (ft)', Number(item.height.toFixed(2)), v => { const n = parseFloat(v); if (n >= 0) updateItem(item.instanceId, { height: n }); }, 'number', { min: 0, step: 0.5 })}
-      {field('Rotation (°)', Math.round(item.rotation), v => { const n = parseFloat(v); if (!isNaN(n)) updateItem(item.instanceId, { rotation: n }); }, 'number', { min: -360, max: 360, step: 5 })}
-      {field('X pos (ft)', Number(item.x.toFixed(2)), v => { const n = parseFloat(v); if (!isNaN(n)) updateItem(item.instanceId, { x: n }); }, 'number', { step: 0.5 })}
-      {field('Y pos (ft)', Number(item.y.toFixed(2)), v => { const n = parseFloat(v); if (!isNaN(n)) updateItem(item.instanceId, { y: n }); }, 'number', { step: 0.5 })}
+      {/* Label — text field, commits on blur/Enter */}
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-slate-500 w-16 flex-shrink-0">Label</span>
+        <input
+          type="text"
+          value={labelDraft}
+          placeholder={def?.name}
+          onChange={e => setLabelDraft(e.target.value)}
+          onBlur={() => updateItem(item.instanceId, { label: labelDraft || undefined })}
+          onKeyDown={e => {
+            if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+            if (e.key === 'Escape') {
+              setLabelDraft(item.label ?? '');
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
+          className="flex-1 px-2 py-1 text-sm border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-amber-400"
+        />
+      </div>
+
+      <NumericField label="Width (ft)"  value={parseFloat(item.width.toFixed(2))}    onCommit={v => updateItem(item.instanceId, { width: v })}    min={0.5} step={0.5} />
+      <NumericField label="Depth (ft)"  value={parseFloat(item.depth.toFixed(2))}    onCommit={v => updateItem(item.instanceId, { depth: v })}    min={0.5} step={0.5} />
+      <NumericField label="Height (ft)" value={parseFloat(item.height.toFixed(2))}   onCommit={v => updateItem(item.instanceId, { height: v })}   min={0}   step={0.5} />
+      <NumericField label="Rotation °"  value={Math.round(item.rotation)}            onCommit={v => updateItem(item.instanceId, { rotation: v })} min={-360} max={360} step={5} />
+      <NumericField label="X pos (ft)"  value={parseFloat(item.x.toFixed(2))}        onCommit={v => updateItem(item.instanceId, { x: v })}                  step={0.5} />
+      <NumericField label="Y pos (ft)"  value={parseFloat(item.y.toFixed(2))}        onCommit={v => updateItem(item.instanceId, { y: v })}                  step={0.5} />
 
       <button
         onClick={handleDelete}

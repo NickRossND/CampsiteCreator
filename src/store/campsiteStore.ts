@@ -31,8 +31,8 @@ export const useCampsiteStore = create<CampsiteStore>((set, get) => ({
 
   addItem: (def) => {
     const { plotWidth, plotDepth } = get();
-    const x = Math.max(0, (plotWidth - def.defaultWidth) / 2);
-    const y = Math.max(0, (plotDepth - def.defaultDepth) / 2);
+    const x = plotWidth / 2;
+    const y = plotDepth / 2;
     const item: PlacedItem = {
       instanceId: uuidv4(),
       definitionId: def.id,
