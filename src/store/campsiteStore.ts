@@ -1,16 +1,21 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
-import type { PlacedItem, ItemDefinition } from '../types/campsite';
+import type { PlacedItem, ItemDefinition, LCutCorner } from '../types/campsite';
 
 interface CampsiteStore {
   plotWidth: number;
   plotDepth: number;
+  isLShaped: boolean;
+  lCutCorner: LCutCorner;
+  lCutWidth: number;
+  lCutHeight: number;
   items: PlacedItem[];
   selectedId: string | null;
   showGrid: boolean;
   snapToGrid: boolean;
 
   setPlotSize: (width: number, depth: number) => void;
+  setLShape: (enabled: boolean, corner: LCutCorner, cutWidth: number, cutHeight: number) => void;
   addItem: (def: ItemDefinition) => void;
   updateItem: (instanceId: string, changes: Partial<PlacedItem>) => void;
   deleteItem: (instanceId: string) => void;
@@ -22,12 +27,19 @@ interface CampsiteStore {
 export const useCampsiteStore = create<CampsiteStore>((set, get) => ({
   plotWidth: 40,
   plotDepth: 40,
+  isLShaped: false,
+  lCutCorner: 'top-right',
+  lCutWidth: 20,
+  lCutHeight: 20,
   items: [],
   selectedId: null,
   showGrid: true,
   snapToGrid: false,
 
   setPlotSize: (width, depth) => set({ plotWidth: width, plotDepth: depth }),
+
+  setLShape: (enabled, corner, cutWidth, cutHeight) =>
+    set({ isLShaped: enabled, lCutCorner: corner, lCutWidth: cutWidth, lCutHeight: cutHeight }),
 
   addItem: (def) => {
     const { plotWidth, plotDepth } = get();
