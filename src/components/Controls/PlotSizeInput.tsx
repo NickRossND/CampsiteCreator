@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCampsiteStore } from '../../store/campsiteStore';
 import type { LCutCorner } from '../../types/campsite';
 
@@ -22,6 +22,14 @@ export function PlotSizeInput() {
   const [corner, setCorner] = useState<LCutCorner>(lCutCorner);
   const [cutW, setCutW] = useState(String(lCutWidth));
   const [cutD, setCutD] = useState(String(lCutHeight));
+
+  // Sync local input state when the store changes externally (file load / localStorage restore)
+  useEffect(() => { setW(String(plotWidth)); },  [plotWidth]);
+  useEffect(() => { setD(String(plotDepth)); },  [plotDepth]);
+  useEffect(() => { setLEnabled(isLShaped); },   [isLShaped]);
+  useEffect(() => { setCorner(lCutCorner); },    [lCutCorner]);
+  useEffect(() => { setCutW(String(lCutWidth)); }, [lCutWidth]);
+  useEffect(() => { setCutD(String(lCutHeight)); }, [lCutHeight]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

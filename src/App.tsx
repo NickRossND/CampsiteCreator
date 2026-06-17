@@ -2,17 +2,19 @@ import { CampsiteCanvas } from './components/Canvas/CampsiteCanvas';
 import { ItemPalette } from './components/Sidebar/ItemPalette';
 import { PlotSizeInput } from './components/Controls/PlotSizeInput';
 import { ItemProperties } from './components/Controls/ItemProperties';
+import { SaveLoadControls } from './components/Controls/SaveLoadControls';
 
 export default function App() {
   return (
     <div className="flex flex-col h-screen bg-slate-50">
       {/* Header */}
-      <header className="flex items-center gap-6 px-4 py-2 bg-white border-b border-slate-200 shadow-sm flex-shrink-0">
-        <div className="flex items-center gap-2">
+      <header className="flex items-center gap-4 px-4 py-2 bg-white border-b border-slate-200 shadow-sm flex-shrink-0 flex-wrap">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <span className="text-lg font-bold text-green-700">Campsite Creator</span>
           <span className="text-xs text-slate-400 hidden sm:block">— music festival layout tool</span>
         </div>
         <PlotSizeInput />
+        <SaveLoadControls />
       </header>
 
       {/* Main layout */}
