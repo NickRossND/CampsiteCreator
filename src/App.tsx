@@ -42,17 +42,15 @@ export default function App() {
     if (selectedId) setMobileTab('properties');
   }, [selectedId]);
 
-  const toggleTab = (tab: MobileTab) => {
+  const toggleTab = (tab: MobileTab) =>
     setMobileTab(prev => prev === tab ? null : tab);
-  };
 
   const navBtn = (tab: MobileTab, icon: React.ReactNode, label: string) => (
     <button
+      key={tab}
       onClick={() => toggleTab(tab)}
       className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 transition-colors ${
-        mobileTab === tab
-          ? 'text-green-700'
-          : 'text-slate-500 hover:text-slate-700'
+        mobileTab === tab ? 'text-green-700' : 'text-slate-500'
       }`}
     >
       {icon}
@@ -63,74 +61,78 @@ export default function App() {
   return (
     <div className="flex flex-col bg-slate-50" style={{ height: '100dvh' }}>
 
-      {/* ── DESKTOP HEADER (md+) ─────────────────────────────────── */}
-      <header className="hidden md:flex items-center gap-4 px-4 py-2 bg-white border-b border-slate-200 shadow-sm flex-shrink-0 flex-wrap">
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-lg font-bold text-green-700">Campsite Creator</span>
-          <span className="text-xs text-slate-400">— music festival layout tool</span>
+      {/* Header — desktop shows full controls, mobile shows logo + save/load only */}
+      <header className="flex-shrink-0 bg-white border-b border-slate-200 shadow-sm">
+        {/* Desktop */}
+        <div className="hidden md:flex items-center gap-4 px-4 py-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-lg font-bold text-green-700">Campsite Creator</span>
+            <span className="text-xs text-slate-400">— music festival layout tool</span>
+          </div>
+          <PlotSizeInput />
+          <SaveLoadControls />
         </div>
-        <PlotSizeInput />
-        <SaveLoadControls />
+        {/* Mobile */}
+        <div className="md:hidden flex items-center justify-between px-4 py-2.5">
+          <span className="text-base font-bold text-green-700">Campsite Creator</span>
+          <SaveLoadControls />
+        </div>
       </header>
 
-      {/* ── MOBILE HEADER (< md) ─────────────────────────────────── */}
-      <header className="md:hidden flex items-center justify-between px-4 py-2.5 bg-white border-b border-slate-200 shadow-sm flex-shrink-0">
-        <span className="text-base font-bold text-green-700">Campsite Creator</span>
-        <SaveLoadControls />
-      </header>
+      {/* Main content — single canvas instance, sidebars hidden on mobile */}
+      <div className="flex-1 flex overflow-hidden min-h-0">
 
-      {/* ── DESKTOP LAYOUT (md+) ─────────────────────────────────── */}
-      <div className="hidden md:flex flex-1 overflow-hidden">
-        <aside className="w-52 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col p-3 overflow-hidden">
+        {/* Left sidebar (desktop only) */}
+        <aside className="hidden md:flex w-52 flex-shrink-0 bg-white border-r border-slate-200 flex-col p-3 overflow-hidden">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Items</h2>
           <ItemPalette />
           <p className="text-xs text-slate-400 mt-3 flex-shrink-0">Click an item to place it.</p>
         </aside>
 
-        <CampsiteCanvas />
+        {/* Centre column: canvas + mobile slide-up panel */}
+        <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+          {/* Canvas always fills remaining space */}
+          <CampsiteCanvas />
 
-        <aside className="w-52 flex-shrink-0 bg-white border-l border-slate-200 flex flex-col p-3 overflow-y-auto">
+          {/* Mobile slide-up panel (hidden on desktop) */}
+          {mobileTab && (
+            <div
+              className="md:hidden bg-white border-t border-slate-200 flex-shrink-0 overflow-y-auto"
+              style={{ maxHeight: '44vh' }}
+            >
+              {mobileTab === 'items' && (
+                <div className="p-3">
+                  <p className="text-xs text-slate-400 mb-2">Tap an item to place it on the plot.</p>
+                  <ItemPalette />
+                </div>
+              )}
+              {mobileTab === 'properties' && (
+                <div className="p-3">
+                  <ItemProperties />
+                </div>
+              )}
+              {mobileTab === 'settings' && (
+                <div className="p-3 overflow-x-auto">
+                  <PlotSizeInput />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right sidebar (desktop only) */}
+        <aside className="hidden md:flex w-52 flex-shrink-0 bg-white border-l border-slate-200 flex-col p-3 overflow-y-auto">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Properties</h2>
           <ItemProperties />
         </aside>
       </div>
 
-      {/* ── MOBILE LAYOUT (< md) ─────────────────────────────────── */}
-      <div className="md:hidden flex flex-col flex-1 overflow-hidden">
-        {/* Canvas — fills whatever space the open panel doesn't take */}
-        <div className="flex-1 overflow-hidden min-h-0">
-          <CampsiteCanvas />
-        </div>
-
-        {/* Slide-up panel */}
-        {mobileTab && (
-          <div className="bg-white border-t border-slate-200 flex-shrink-0 overflow-y-auto" style={{ maxHeight: '44vh' }}>
-            {mobileTab === 'items' && (
-              <div className="p-3">
-                <p className="text-xs text-slate-400 mb-2">Tap an item to place it on the plot.</p>
-                <ItemPalette />
-              </div>
-            )}
-            {mobileTab === 'properties' && (
-              <div className="p-3">
-                <ItemProperties />
-              </div>
-            )}
-            {mobileTab === 'settings' && (
-              <div className="p-3 overflow-x-auto">
-                <PlotSizeInput />
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Bottom navigation bar */}
-        <nav className="flex bg-white border-t border-slate-200 flex-shrink-0 safe-area-inset-bottom">
-          {navBtn('items',      <IconItems />,      'Items')}
-          {navBtn('properties', <IconProperties />, 'Properties')}
-          {navBtn('settings',   <IconSettings />,   'Settings')}
-        </nav>
-      </div>
+      {/* Mobile bottom nav (hidden on desktop) */}
+      <nav className="md:hidden flex flex-shrink-0 bg-white border-t border-slate-200">
+        {navBtn('items',      <IconItems />,      'Items')}
+        {navBtn('properties', <IconProperties />, 'Properties')}
+        {navBtn('settings',   <IconSettings />,   'Settings')}
+      </nav>
     </div>
   );
 }

@@ -95,7 +95,7 @@ export function CampsiteCanvas() {
   );
 
   return (
-    <div ref={containerRef} className="flex-1 bg-slate-100 overflow-hidden w-full h-full" style={{ touchAction: 'none' }}>
+    <div ref={containerRef} className="flex-1 bg-slate-100 overflow-hidden" style={{ touchAction: 'none' }}>
       <Stage
         width={canvasSize.width}
         height={canvasSize.height}
