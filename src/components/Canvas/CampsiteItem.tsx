@@ -118,6 +118,14 @@ export function CampsiteItem({ item, pxPerFoot, isSelected }: CampsiteItemProps)
           ref={transformerRef}
           rotateEnabled={true}
           keepRatio={false}
+          anchorSize={20}
+          anchorCornerRadius={4}
+          anchorFill="#ffffff"
+          anchorStroke="#475569"
+          anchorStrokeWidth={1.5}
+          borderStroke="#f59e0b"
+          borderStrokeWidth={2}
+          padding={4}
           boundBoxFunc={(oldBox, newBox) => {
             if (newBox.width < 10 || newBox.height < 10) return oldBox;
             return newBox;
