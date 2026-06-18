@@ -11,7 +11,7 @@ export function ItemCard({ def }: ItemCardProps) {
   return (
     <button
       onClick={() => addItem(def)}
-      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors text-left group"
+      className="w-full flex items-center gap-2 px-3 py-3 md:py-2 rounded-lg hover:bg-slate-100 active:bg-slate-200 transition-colors text-left group"
       title={`${def.name} — ${def.defaultWidth}×${def.defaultDepth} ft`}
     >
       <span
